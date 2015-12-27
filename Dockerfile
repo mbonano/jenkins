@@ -1,6 +1,13 @@
 FROM java:8-jdk
 
+MAINTAINER Mark Bonano "mark@chazmar.com"
+
 RUN apt-get update && apt-get install -y wget git curl zip && rm -rf /var/lib/apt/lists/*
+
+# install node & npm
+RUN curl -sL https://deb.nodesource.com/setup_5.x | bash -
+RUN apt-get install -y nodejs
+RUN apt-get install -y build-essential
 
 ENV JENKINS_HOME /var/jenkins_home
 ENV JENKINS_SLAVE_AGENT_PORT 50000
@@ -27,8 +34,8 @@ RUN curl -fL https://github.com/krallin/tini/releases/download/v0.5.0/tini-stati
 
 COPY init.groovy /usr/share/jenkins/ref/init.groovy.d/tcp-slave-agent-port.groovy
 
-ENV JENKINS_VERSION 1.625.1
-ENV JENKINS_SHA c96d44d4914a154c562f21cd20abdd675ac7f5f3
+ENV JENKINS_VERSION 1.625.3
+ENV JENKINS_SHA 537d910f541c25a23499b222ccd37ca25e074a0c
 
 # could use ADD but this one does not check Last-Modified header 
 # see https://github.com/docker/docker/issues/8331
@@ -37,6 +44,10 @@ RUN curl -fL http://mirrors.jenkins-ci.org/war-stable/$JENKINS_VERSION/jenkins.w
 
 ENV JENKINS_UC https://updates.jenkins-ci.org
 RUN chown -R jenkins "$JENKINS_HOME" /usr/share/jenkins/ref
+
+COPY jenkins.sh /opt/jenkins.sh
+RUN chown -R jenkins "$JENKINS_HOME" /opt/jenkins.sh
+RUN chmod -R a+x /opt/jenkins.sh
 
 # for main web interface:
 EXPOSE 8080
@@ -48,8 +59,7 @@ ENV COPY_REFERENCE_FILE_LOG $JENKINS_HOME/copy_reference_file.log
 
 USER jenkins
 
-COPY jenkins.sh /usr/local/bin/jenkins.sh
-ENTRYPOINT ["/bin/tini", "--", "/usr/local/bin/jenkins.sh"]
+ENTRYPOINT ["/bin/tini", "--", "/opt/jenkins.sh"]
 
 # from a derived Dockerfile, can use `RUN plugins.sh active.txt` to setup /usr/share/jenkins/ref/plugins from a support bundle
 COPY plugins.sh /usr/local/bin/plugins.sh
