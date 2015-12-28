@@ -9,6 +9,16 @@ RUN curl -sL https://deb.nodesource.com/setup_5.x | bash -
 RUN apt-get install -y nodejs
 RUN apt-get install -y build-essential
 
+# install global dependencies
+RUN npm install -y webpack -g
+RUN npm install -y webpack-dev-server -g
+RUN npm install -y gulp -g
+RUN npm install -y grunt-cli -g
+RUN npm install -y yo bower -g
+
+# add jenkins users to sudoers file
+RUN echo "jenkins ALL=NOPASSWD: ALL" >> /etc/sudoers
+
 ENV JENKINS_HOME /var/jenkins_home
 ENV JENKINS_SLAVE_AGENT_PORT 50000
 
